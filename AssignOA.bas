@@ -21,7 +21,7 @@ Sub AssignOA_ByPercentage_AvoidDuplicates()
     For i = 2 To lastRow
         province = Trim(wsData.Cells(i, "AI").Value)
         
-        ' ???? OA 4 ?????????????
+        ' ดึง OA ที่ได้รับมอบหมายในช่วง 4 เดือนก่อนหน้า
         pastOAs(1) = Trim(wsData.Cells(i, "S").Value) ' May
         pastOAs(2) = Trim(wsData.Cells(i, "T").Value) ' Apr
         pastOAs(3) = Trim(wsData.Cells(i, "U").Value) ' Mar
@@ -29,7 +29,7 @@ Sub AssignOA_ByPercentage_AvoidDuplicates()
         
         Set possibleOAs = New Collection
         
-        ' ????????? OA ??? OA_Master
+        ' ค้นหา OA ทั้งหมดในจังหวัดเดียวกันจาก OA_Master
         Dim mLastRow As Long
         mLastRow = wsMaster.Cells(wsMaster.Rows.Count, "A").End(xlUp).Row
         
@@ -42,6 +42,7 @@ Sub AssignOA_ByPercentage_AvoidDuplicates()
                 thisOA = Trim(wsMaster.Cells(j, "B").Value)
                 thisPct = wsMaster.Cells(j, "C").Value
                 
+                ' เพิ่ม OA ที่ยังไม่เคยได้รับมอบหมายใน 4 เดือนล่าสุด
                 If Not IsInArray(thisOA, pastOAs) Then
                     possibleOAs.Add Array(thisOA, thisPct)
                     totalPct = totalPct + thisPct
@@ -49,10 +50,10 @@ Sub AssignOA_ByPercentage_AvoidDuplicates()
             End If
         Next j
         
-        ' ???????? OA ??????????????????? ?????? OA ??????????????????
+        ' ถ้าไม่มี OA ที่ผ่านเงื่อนไข ให้ใช้ OA ที่ได้รับมอบหมายล่าสุดแทน
         If possibleOAs.Count = 0 Then
             Dim fallbackOA As String
-            For j = 4 To 1 Step -1 ' ???????? Feb ? Mar ? Apr ? May
+            For j = 4 To 1 Step -1 ' ไล่จาก Feb → Mar → Apr → May
                 If pastOAs(j) <> "" Then
                     fallbackOA = pastOAs(j)
                     Exit For
@@ -60,7 +61,7 @@ Sub AssignOA_ByPercentage_AvoidDuplicates()
             Next j
             assignedOA = fallbackOA
         Else
-            ' ????????? OA ??? possibleOAs ??????????
+            ' สุ่มเลือก OA จากกลุ่มที่ผ่านเงื่อนไข ตามเปอร์เซ็นต์ที่กำหนด
             randVal = Rnd * totalPct
             cumPct = 0
             
